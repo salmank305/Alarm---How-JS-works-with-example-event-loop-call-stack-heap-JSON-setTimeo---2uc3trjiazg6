@@ -1,42 +1,64 @@
-import * as React from 'react';
-import Button from '@mui/material/Button';
-import Dialog from '@mui/material/Dialog';
-import DialogActions from '@mui/material/DialogActions';
-import DialogContent from '@mui/material/DialogContent';
-import DialogContentText from '@mui/material/DialogContentText';
-import DialogTitle from '@mui/material/DialogTitle';
-import Slide from '@mui/material/Slide';
-import { Box } from '@mui/system';
+import { IconButton, Paper, Typography } from "@mui/material";
+import { Box } from "@mui/system";
+import { Edit, Delete } from "@mui/icons-material";
+import React from "react";
+import ActiveAlarm from "./activeAlarm";
+import AlarmEditForm from "./alarmEdit";
 
-const Transition = React.forwardRef(function Transition(props, ref) {
-  return <Slide direction="up" ref={ref} {...props} />;
-});
+export default function Alarm(props) {
+    const [open, setOpen] = React.useState(false)
+    const [editOpen, setEditOpen] = React.useState(false)
 
-export default function ActiveAlarm(props) {
+    const checkAlarm = () => {
+        if(props.time == props.alarmTime){
+            setOpen(true)
+        }    
+    }
 
-  return (
-    <>
-      <Dialog
-        open={props.open}
-        TransitionComponent={Transition}
-        keepMounted
-        onClose={props.onClose}
-        aria-describedby="alert-dialog-slide-description"
-      >
-        <DialogTitle>{props.label}</DialogTitle>
-        <DialogContent>
-          <DialogContentText id="alert-dialog-slide-description">
-            <Box>
-            {props.alarmTime}
+    const handleClose = () => {
+        setOpen(false)
+    }
+
+    React.useEffect(()=> {
+        checkAlarm()
+    }, [])
+
+    const handleEdit = (label1, alarmTime1) => {
+        setEditOpen(false)
+        props.onEdit(label1, alarmTime1)
+    }
+    const handleSnooze = () => {
+        props.onSnooze()
+        handleClose()
+    }
+    
+    const handleDelete = () => {
+        props.onDelete()
+        handleClose()
+    }
+
+    setInterval(checkAlarm, 60000)
+
+    return (
+        <>
+            <ActiveAlarm key = {props.key} open={open} label = {props.label} alarmTime={props.alarmTime} onClose={handleClose} onSnooze={handleSnooze} onDelete={handleDelete}/>
+            <Paper elevation={3} >
+            <Box display='flex' flexDirection='row' justifyContent="space-between">
+                <Typography variant="h6">{props.label}</Typography>
+                <Typography variant="h6">{props.alarmTime}</Typography>
+                <Box>
+                    <IconButton area-label="delete">
+                    <Edit id = {props.index+'-edit'} onClick={()=> setEditOpen(true)}/>
+                    <AlarmEditForm open={editOpen} alarmid= {props.index} label={props.label} alarmTime={props.alarmTime} index={props.index} onEdit={handleEdit} />
+                    </IconButton>
+                    <IconButton area-label="delete">
+                    <Delete id={props.index} onClick={props.onDelete}/>
+                    </IconButton>
+                </Box>
             </Box>
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button id = {props.label+'active-alarm-snooze'} onClick={props.onSnooze}>Snooze</Button>
-          <Button id = {props.label+"active-alarm-close"} onClick={props.onClose}>Dismiss</Button>
-          <Button id = {props.label+"active-alarm-delete"} onClick={props.onDelete}>Delete</Button>
-        </DialogActions>
-      </Dialog>
-    </>
-  );
+            </Paper>
+            
+            {/* {props.time == props.alarmTime ? <ActiveAlarm open={true} label={props.label} alarmTime={props.alarmTime} /> : <ActiveAlarm open={false} label={props.label} alarmTime={props.alarmTime} />} */}
+        </>
+    )
 }
